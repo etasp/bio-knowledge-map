@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+!.env.example
+output/
+dist/
+qa/
+source_manifest.json
+sources/
+corpus/
+!assets/demo/corpus/
+!assets/demo/corpus/**
+*.zip
