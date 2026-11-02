@@ -20,6 +20,7 @@ def check(path, browser_path=None):
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.on('request', lambda request: external.append(request.url) if request.url.startswith(('https://', 'http://')) else None)
         page.goto(path.as_uri())
+        mode = page.evaluate('DATA.mode')
         page.wait_for_function("document.querySelector('#nativeGraphFrame')?.dataset.ready==='true'", timeout=15000)
         frame = page.frame_locator('#nativeGraphFrame')
         frame.locator('#study-first-topic').click()
@@ -28,14 +29,20 @@ def check(path, browser_path=None):
         frame.locator('[data-study-source]').first.click()
         assert page.locator('#detail').evaluate('el=>el.open')
         assert page.locator('#rawText').inner_text()
+        if mode == 'chat':
+            assert page.locator('#sourceSection').input_value().startswith('D')
+            assert page.locator('#rawText').inner_text().startswith('## D')
         page.locator('#detail .close').click()
         page.locator('#showCards').click()
         page.locator('.card').first.wait_for()
         first_id = page.locator('.card [data-action="open"]').first.get_attribute('data-id')
         page.locator('.card [data-action="open"]').first.click()
-        assert not page.locator('#detail details').evaluate('el=>el.open')
-        page.locator('#detail details summary').click()
-        assert page.locator('#detail details').evaluate('el=>el.open')
+        if mode == 'learning':
+            assert not page.locator('#detail details').evaluate('el=>el.open')
+            page.locator('#detail details summary').click()
+            assert page.locator('#detail details').evaluate('el=>el.open')
+        else:
+            assert page.locator('#detail details').count() == 0
         page.locator('#detail [data-action="review"]').click()
         page.locator('#detail .close').click()
         page.locator('[data-view="review"]').click()
@@ -45,11 +52,14 @@ def check(path, browser_path=None):
         page.locator('#showCards').click()
         page.locator('[data-view="review"]').click()
         assert page.locator(f'.card [data-id="{first_id}"]').count()
-        page.locator('[data-view="quiz"]').click()
-        assert page.locator('.answer').count() == 0
-        page.locator('#reveal').click()
-        assert page.locator('.answer').inner_text()
-        page.locator('#again').click()
+        if mode == 'learning':
+            page.locator('[data-view="quiz"]').click()
+            assert page.locator('.answer').count() == 0
+            page.locator('#reveal').click()
+            assert page.locator('.answer').inner_text()
+            page.locator('#again').click()
+        else:
+            assert not page.locator('[data-view="quiz"]').is_visible()
         page.locator('[data-view="learn"]').click()
         title = page.locator('.card h3').first.inner_text()
         page.locator('#search').fill(title)
@@ -68,7 +78,7 @@ def check(path, browser_path=None):
         assert not errors, errors
         assert not external, external
         browser.close()
-    summary = dict(offline=True, graph_click=True, source_lookup=True, answer_hidden=True, review_persists=True, search=True, mobile_width=390, browser_errors=errors, external_requests=external)
+    summary = dict(mode=mode, offline=True, graph_click=True, source_lookup=True, quiz='answer_hidden' if mode == 'learning' else 'not_enabled', review_persists=True, search=True, mobile_width=390, browser_errors=errors, external_requests=external)
     (qa / 'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
     return summary
 

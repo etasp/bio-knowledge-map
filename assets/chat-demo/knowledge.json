@@ -1,0 +1,13 @@
+{
+  "title": "聊天主题知识库 · 虚构演示",
+  "library_id": "chat-demo",
+  "mode": "chat",
+  "chapters": ["全部主题", "资料准备", "待跟进"],
+  "lessons": {"1-1": "目录核对", "2-1": "补充资料"},
+  "sources": [{"id":"s01","name":"虚构聊天记录","original_path":"messages.jsonl","text_file":"corpus/s01.md","original_file":"messages.jsonl","chapters":[1,2],"kind":"chat"}],
+  "nodes": [
+    {"id":"material_check","label":"资料目录核对","chapter":1,"lesson":"1-1","summary":"成员甲称已在文档中放置资料目录，请大家核对缺失章节。","points":["待跟进：核对哪些章节缺资料。","原文没有指定核对负责人或完成期限。"],"pitfall":"没有附件正文，不能核实文档内容。","source_id":"s01","source_location":"D000001｜2026-01-01T10:00:00+08:00｜成员甲","evidence":"我把资料目录放在文档里了，大家先核对缺哪些章节。"},
+    {"id":"followup","label":"缺失资料的补充安排","chapter":2,"lesson":"2-1","summary":"成员乙表示周五补充缺失章节，具体完成时间未确定。","points":["负责人：成员乙（来自原文自述）。","未见已完成的后续记录；具体截止时间未确定。"],"source_id":"s01","source_location":"D000002｜2026-01-01T10:01:00+08:00｜成员乙","evidence":"我周五补充缺失章节，具体完成时间还没确定。"}
+  ],
+  "edges": [{"source":"material_check","target":"followup","relation":"topic_followup","confidence":"INFERRED","rationale":"相邻消息均谈到缺失章节，整理为待跟进关系；原文没有显式引用消息编号。"}]
+}

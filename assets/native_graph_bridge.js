@@ -41,7 +41,7 @@ let selectedStudyNode = null, onlyNeighbors = false, showStudyLabels = true;
 let studyState={mastered:[],saved:[],review:[]},studyHistory=[],studyHistoryIndex=-1,followingHistory=false;
 const studyProgress=document.createElement('div');studyProgress.id='study-progress';studyProgress.setAttribute('role','status');document.getElementById('search-wrap').after(studyProgress);
 function updateStudyProgress(){
-  const count=[...studyCatalog.values()].filter(n=>n.question).length;
+  const count=[...studyCatalog.values()].filter(n=>n.question||n.kind==='topic').length;
   studyProgress.innerHTML=`<div>已掌握 ${studyState.mastered.length} / ${count} · 待复习 ${studyState.review.length}<span>收藏 ${studyState.saved.length}</span></div><div class="study-progress-track"><i style="width:${count?studyState.mastered.length/count*100:0}%"></i></div>`;
   const labels={mastered:['标记掌握','✓ 已掌握'],saved:['☆ 收藏','★ 已收藏'],review:['加入复习','✓ 待复习']};
   document.querySelectorAll('[data-study-mark]').forEach(button=>{const action=button.dataset.studyMark,active=studyState[action].includes(button.dataset.node);button.textContent=labels[action][active?1:0];button.setAttribute('aria-pressed',active)});
@@ -117,8 +117,8 @@ window.addEventListener('message', event => {
       ${n.pitfall ? `<p class="study-pitfall"><b>易错提醒</b><br>${esc(n.pitfall)}</p>` : ''}
       ${n.question ? `<details><summary>回忆自测</summary><p>${esc(n.question)}</p><details><summary>查看答案</summary><p>${esc(n.answer || '')}</p></details></details>` : ''}
       <div class="study-source">${esc(n.source_name || '')} · ${esc(n.source_location || '')}<blockquote>${esc(n.evidence || '')}</blockquote></div>
-      <div class="study-actions"><button data-study-source="${esc(n.id)}">查看来源原文</button>${n.question ? `<button data-study-card="${esc(n.id)}">完整知识卡</button>` : ''}</div>
-      ${n.question?`<div class="study-actions study-marks">${['mastered','saved','review'].map(action=>`<button data-study-mark="${action}" data-node="${esc(n.id)}" aria-pressed="false"></button>`).join('')}</div>`:''}
+      <div class="study-actions"><button data-study-source="${esc(n.id)}">查看来源原文</button>${n.question||n.kind==='topic' ? `<button data-study-card="${esc(n.id)}">完整知识卡</button>` : ''}</div>
+      ${n.question||n.kind==='topic'?`<div class="study-actions study-marks">${['mastered','saved','review'].map(action=>`<button data-study-mark="${action}" data-node="${esc(n.id)}" aria-pressed="false"></button>`).join('')}</div>`:''}
       <h3 class="study-neighbors">关联知识</h3>`;
     if (neighbors) document.getElementById('info-content').append(neighbors);
     document.getElementById('info-panel').scrollTop = 0;

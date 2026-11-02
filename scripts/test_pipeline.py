@@ -5,6 +5,8 @@ from tempfile import TemporaryDirectory
 import zipfile
 from intake import intake
 from build import load, validate
+from import_chat import import_chat
+import json
 
 
 def main():
@@ -27,9 +29,21 @@ def main():
             pass
         else:
             raise AssertionError('Existing workspace was overwritten')
+        chat = root / 'messages.jsonl'
+        chat.write_text('\n'.join(json.dumps(dict(id=i, sender='成员甲', timestamp='2026-01-01', content='相同正文'), ensure_ascii=False) for i in (1, 2)), encoding='utf-8')
+        record = import_chat(chat, root / 'chat')
+        transcript = (root / 'chat/corpus/s01.md').read_text(encoding='utf-8')
+        assert record['messages'] == 2 and transcript.count('相同正文') == 2
+        assert 'D000001' in transcript and 'D000002' in transcript and '成员甲' in transcript
     demo = Path(__file__).resolve().parents[1] / 'assets/demo'
     valid = load(demo / 'knowledge.json')
     assert len(validate(deepcopy(valid), demo.resolve())['nodes']) == 3
+    topics = deepcopy(valid)
+    topics['mode'] = 'chat'
+    for node in topics['nodes']:
+        node.pop('question')
+        node.pop('answer')
+    assert all(n['question'] == '' for n in validate(topics, demo.resolve())['nodes'])
     for mutate in (
         lambda data: data['nodes'][0].update(evidence='不存在的引文'),
         lambda data: data['sources'][0].update(text_file='../study.html'),

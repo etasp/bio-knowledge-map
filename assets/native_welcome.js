@@ -6,7 +6,7 @@ studyProgress.after(studyEntry);
 const chapterPicker=document.getElementById('study-chapter');
 chapterPicker.onchange=()=>parent.postMessage({type:'graphify:chapter',chapter:Number(chapterPicker.value)},'*');
 function beginStudyExample(){
- const node=RAW_NODES.find(n=>learningAllowed.has(n.id)&&studyCatalog.get(n.id)?.question);
+ const node=RAW_NODES.find(n=>learningAllowed.has(n.id)&&studyCatalog.has(n.id));
  if(node){toggleAllCommunities(false);onlyNeighbors=false;document.getElementById('graph-neighbors').setAttribute('aria-pressed','false');applyStudyVisibility();focusNode(node.id)}
 }
 function showStudyWelcome(){

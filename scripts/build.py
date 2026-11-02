@@ -34,6 +34,9 @@ def require_text(value, label):
 
 def validate(data, project):
     require_text(data.get('title'), 'title')
+    mode = data.setdefault('mode', 'learning')
+    if mode not in ('learning', 'chat'):
+        raise ValueError('mode must be learning or chat')
     if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,63}', data.get('library_id', '')):
         raise ValueError('library_id must use lowercase letters, numbers and hyphens')
     chapters = data.get('chapters', [])
@@ -65,8 +68,13 @@ def validate(data, project):
         if not re.fullmatch(r'[a-z0-9_]+', nid) or nid in ids:
             raise ValueError(f'Invalid or duplicate card id: {nid}')
         ids.add(nid)
-        for key in ('label', 'lesson', 'summary', 'pitfall', 'question', 'answer', 'source_id', 'source_location', 'evidence'):
+        for key in ('label', 'lesson', 'summary', 'source_id', 'source_location', 'evidence'):
             require_text(node.get(key), f'{nid}.{key}')
+        for key in ('pitfall', 'question', 'answer'):
+            if mode == 'learning':
+                require_text(node.get(key), f'{nid}.{key}')
+            elif not isinstance(node.setdefault(key, ''), str):
+                raise ValueError(f'Expected text: {nid}.{key}')
         if type(node.get('chapter')) is not int or not 0 < node['chapter'] < len(chapters):
             raise ValueError(f'Invalid chapter: {nid}')
         if node['lesson'] not in data['lessons']:
@@ -79,6 +87,7 @@ def validate(data, project):
         if source is None or node['evidence'] not in source['text']:
             raise ValueError(f'Evidence absent from source: {nid}')
         node['source_file'] = '文字资料/' + node['source_id'] + '.md'
+        node['kind'] = 'topic' if mode == 'chat' else 'knowledge'
     if not ids:
         raise ValueError('No knowledge cards supplied')
     pairs = set()
@@ -128,6 +137,10 @@ def graph_html(data, output):
         page = page.replace(old, new)
     bridge = '\n'.join((ASSETS / name).read_text(encoding='utf-8') for name in ('native_graph_bridge.js', 'native_accessibility.js', 'native_welcome.js'))
     bridge = bridge.replace('__CHAPTER_NAMES__', js(['全书', *data['chapters'][1:]]))
+    if data['mode'] == 'chat':
+        # Rewrite UI wording before data is sent to the frame; source text stays literal.
+        for old, new in [('已掌握', '已读'), ('待复习', '待回看'), ('加入复习', '加入回看'), ('易错提醒', '待核实与分歧'), ('知识点', '主题'), ('看讲解', '看讨论整理')]:
+            bridge = bridge.replace(old, new)
     page = page.replace('</head>', '<style>' + (ASSETS / 'native_graph.css').read_text(encoding='utf-8') + '</style></head>')
     page = page.replace('</body>', '<script>' + bridge + '</script></body>')
     (output / 'graph.html').write_text(page, encoding='utf-8')
@@ -154,8 +167,12 @@ def build(knowledge, project, output):
             shutil.copy2(attachment, output / link)
         clean_sources.append(dict(id=source['id'], name=source['name'], original_path=source['original_path'], text=source['text'], chapters=source['chapters'], kind='ppt' if source['kind'] in ('ppt', 'pptx', 'pdf') else source['kind'], original_link=link))
     native = graph_html(data, output)
-    payload = dict(nodes=data['nodes'], edges=data.get('edges', []), sources=clean_sources, lessons=data['lessons'], graph_nodes=data['nodes'], native_graph=native, title=data['title'], chapters=data['chapters'])
+    payload = dict(nodes=data['nodes'], edges=data.get('edges', []), sources=clean_sources, lessons=data['lessons'], graph_nodes=data['nodes'], native_graph=native, title=data['title'], chapters=data['chapters'], mode=data['mode'])
     page = (ASSETS / 'study.html').read_text(encoding='utf-8')
+    if data['mode'] == 'chat':
+        page = page.replace('data-view="quiz"', 'data-view="quiz" hidden')
+        for old, new in [('已掌握', '已读'), ('待复习', '待回看'), ('加入复习', '加入回看'), ('我的复习', '我的回看'), ('易错提醒', '待核实与分歧'), ('教材章节', '主题分类'), ('章节学习', '主题浏览')]:
+            page = page.replace(old, new)
     page = page.replace('__SOURCE_READER__', (ASSETS / 'source_reader.js').read_text(encoding='utf-8')).replace('__STUDY_DATA__', js(payload))
     page = page.replace('__CHAPTER_NAMES__', js(data['chapters'])).replace('__LIBRARY_ID__', data['library_id'])
     page = page.replace('__HTML_TITLE__', html.escape(data['title'], quote=True))
@@ -163,7 +180,7 @@ def build(knowledge, project, output):
     # Keep editable input separate from runtime fields populated above.
     shutil.copy2(knowledge, output / 'knowledge.json')
     covered = {n['source_id'] for n in data['nodes']}
-    report = dict(sources=len(data['sources']), cards=len(data['nodes']), edges=len(data.get('edges', [])), sources_without_cards=[s['id'] for s in data['sources'] if s['id'] not in covered], browser_verified=False)
+    report = dict(mode=data['mode'], sources=len(data['sources']), cards=len(data['nodes']), edges=len(data.get('edges', [])), sources_without_cards=[s['id'] for s in data['sources'] if s['id'] not in covered], browser_verified=False)
     (output / 'coverage.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
     (output / '使用说明.txt').write_text('打开“开始学习.html”即可离线学习。点击图谱或搜索进入知识点，可查原文、先答后翻、收藏和标记复习。\n记录保存在当前浏览器，可导出/导入迁移；文字提取不保留全部图示与公式，请核对原附件。\ncoverage.json 为结构统计，不代表所有教学内容已经完整覆盖或学科正确性通过人工审核。\n', encoding='utf-8')
     return report

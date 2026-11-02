@@ -1,4 +1,4 @@
 interface:
-  display_name: "生物知识地图制作"
-  short_description: "把课件与练习整理成可溯源知识卡、交互图谱、自测和复习网页，复用真实项目流程"
-  default_prompt: "用 $bio-knowledge-map 将我的生物课件和练习做成可离线使用的知识地图，保留原文出处、自测与复习记录。"
+  display_name: "通用资料知识库制作"
+  short_description: "将微信聊天、课程及考公考研资料整理成可溯源知识卡、主题图谱和离线知识库"
+  default_prompt: "用 $bio-knowledge-map 将这批资料整理成可回查的知识库：学习资料保留自测与复习，聊天记录保留发言人、时间和讨论上下文。"
