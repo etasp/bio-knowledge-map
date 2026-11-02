@@ -1,0 +1,96 @@
+{
+  "title": "生物知识地图 · 格式演示",
+  "library_id": "bio-demo",
+  "chapters": [
+    "全书概览",
+    "物质运输",
+    "能量供应"
+  ],
+  "lessons": {
+    "1-1": "运输与载体",
+    "2-1": "ATP"
+  },
+  "sources": [
+    {
+      "id": "s01",
+      "name": "独立编写的演示笔记.md",
+      "original_path": "演示笔记.md",
+      "text_file": "corpus/s01.md",
+      "chapters": [
+        1,
+        2
+      ],
+      "kind": "md"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "active_transport",
+      "label": "主动运输",
+      "chapter": 1,
+      "lesson": "1-1",
+      "summary": "主动运输借助载体蛋白并消耗能量，可逆浓度梯度运输物质。",
+      "points": [
+        "关注运输方向与能量消耗。",
+        "结合具体物质和细胞条件判断。"
+      ],
+      "pitfall": "需要载体蛋白不等于一定是主动运输。",
+      "question": "判断主动运输时需要关注哪些条件？",
+      "answer": "结合浓度梯度方向、载体蛋白参与和能量消耗判断。",
+      "source_id": "s01",
+      "source_location": "第 1 页",
+      "evidence": "主动运输可以逆浓度梯度进行，需要载体蛋白参与并消耗能量。"
+    },
+    {
+      "id": "carrier_protein",
+      "label": "载体蛋白",
+      "chapter": 1,
+      "lesson": "1-1",
+      "summary": "载体蛋白参与特定物质的跨膜运输。",
+      "points": [
+        "参与特定物质的运输。"
+      ],
+      "pitfall": "不要仅根据是否有载体判断运输类型。",
+      "question": "看到载体蛋白就能判定为主动运输吗？",
+      "answer": "不能，还需要结合运输方向和能量消耗等条件。",
+      "source_id": "s01",
+      "source_location": "第 1 页",
+      "evidence": "载体蛋白参与特定物质的运输；具体运输方式需要结合条件判断。"
+    },
+    {
+      "id": "atp",
+      "label": "ATP",
+      "chapter": 2,
+      "lesson": "2-1",
+      "summary": "ATP参与细胞生命活动的供能。",
+      "points": [
+        "在具体生命活动中判断供能关系。"
+      ],
+      "pitfall": "这份演示笔记没有说明每一种运输的具体供能方式。",
+      "question": "这份笔记怎样描述ATP的作用？",
+      "answer": "ATP是细胞生命活动的直接能源物质之一。",
+      "source_id": "s01",
+      "source_location": "第 2 页",
+      "evidence": "ATP是细胞生命活动的直接能源物质之一。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "active_transport",
+      "target": "carrier_protein",
+      "relation": "requires",
+      "confidence": "EXTRACTED",
+      "rationale": "演示笔记直接提到主动运输需要载体蛋白。",
+      "source_id": "s01",
+      "source_location": "第 1 页",
+      "evidence": "主动运输可以逆浓度梯度进行，需要载体蛋白参与并消耗能量。"
+    },
+    {
+      "source": "active_transport",
+      "target": "atp",
+      "relation": "study_related",
+      "confidence": "INFERRED",
+      "rationale": "作为跨章节供能主题的复习线索；演示原文没有逐项说明主动运输供能机制。"
+    }
+  ]
+}
